@@ -3,8 +3,23 @@
 The Modbus connection is not opened here. `async_get_unit` hands out a unit on a
 connection shared with anything else addressing the same host and port, and
 reference-counts it, so the socket is closed when the last config entry holding a
-unit on it unloads. That matters on this hardware: it is a small embedded web
-server, and a burst of connections to it has been observed to get resets.
+unit on it unloads.
+
+THAT SHARING IS NOT AN OPTIMISATION HERE, IT IS THE DIFFERENCE BETWEEN WORKING
+AND NOT. The board accepts exactly TWO concurrent Modbus/TCP connections. A third
+is refused instantly -- accepted at the TCP level and dropped, with no Modbus
+error and nothing in any log. Measured on an X-WR-4R3-E by disabling and
+re-enabling this integration while probing from another machine: three failures,
+then three successes, then three failures again.
+
+Two consequences worth keeping in mind before adding a second connection anywhere
+in this integration:
+
+* One config entry must cost one connection. Anything that opens its own socket
+  rather than taking a unit on the shared one halves the budget.
+* Running alongside Home Assistant's YAML `modbus:` integration consumes the pair
+  -- the two use different libraries and cannot share -- so during a migration no
+  other tool can reach the board at all.
 """
 
 from __future__ import annotations

@@ -10,7 +10,7 @@ Works entirely on your own network. No cloud account and no internet connection.
 Other ControlByWeb devices are **not** supported. Their register maps differ, and shipping a map
 nobody has tested against real hardware would be a support claim rather than a feature.
 
-## Before you install: two things this device makes you choose
+## Before you install: three things this device makes you choose
 
 **1. You can have the control password, or you can have this integration. Not both.**
 
@@ -24,6 +24,20 @@ The device offers no serial number and no model string — it answers no read at
 relay states. So a board is identified by the address you gave it. **If you change its IP address,
 Home Assistant sees a new device**, and you will need to add it again and move your automations
 across. Give it a static address or a DHCP reservation.
+
+**3. The board accepts only TWO Modbus connections at once, and this integration uses one.**
+
+Measured, not guessed: with one connection open, a second works and a **third is refused
+instantly** — the board accepts the TCP connection and drops it immediately, with no error
+message of any kind.
+
+So if you are already polling this board with Home Assistant's YAML `modbus:` integration, adding
+this one uses up the pair. Everything in Home Assistant keeps working, but **any other tool you
+point at the board will fail**, with a bare "connection lost" that names no cause. Diagnosing
+that from the outside is close to impossible if you do not already know about the limit.
+
+If you are migrating from a YAML `modbus:` hub, plan to run both only briefly and then remove
+the YAML hub. Leaving them side by side works — it just costs you every spare connection.
 
 ## Requirements
 
@@ -92,6 +106,7 @@ This is on by default and can be turned off in the integration's options.
 | Setup says it cannot connect | Wrong address or port, or the **control password is enabled** on the board |
 | Setup says it is not a WebRelay-Quad | Something else answered at that address — check the IP |
 | Everything went unavailable at once | Check the control password first; enabling it disables Modbus |
+| Another Modbus tool cannot reach the board at all | The board allows **two** connections and this integration holds one. Close whatever else is connected — a YAML `modbus:` hub for the same board is the usual culprit |
 | A relay appears stuck on | Enable that relay's switch and turn it off |
 | The binary sensor never reacts to a pulse | Expected. A short pulse is over long before the next poll — that sensor is for spotting a relay stuck **on**, not for confirming a press. Use pulse confirmation for that |
 

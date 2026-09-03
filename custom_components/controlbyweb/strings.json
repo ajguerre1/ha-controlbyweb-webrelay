@@ -52,17 +52,17 @@
   "entity": {
     "binary_sensor": {
       "relay_state": {
-        "name": "Relay {relay}"
+        "name": "{relay}"
       }
     },
     "button": {
       "relay_pulse": {
-        "name": "Relay {relay} pulse"
+        "name": "{relay} pulse"
       }
     },
     "switch": {
       "relay_latch": {
-        "name": "Relay {relay} hold"
+        "name": "{relay} hold"
       }
     }
   }

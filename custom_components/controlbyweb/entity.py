@@ -48,12 +48,17 @@ class ControlByWebEntity(CoordinatorEntity[ControlByWebCoordinator]):
 
     @property
     def translation_placeholders(self) -> dict[str, str]:
-        """Fill the entity name with this relay's configured label.
+        """The label this relay is known by: its configured name, or "Relay N".
 
-        Defaults to its number, so an unconfigured board reads as "Relay 1"
-        rather than as a blank.
+        The whole label is substituted, not just the name, because the word
+        "Relay" is only wanted when there is nothing better to say. Naming relay
+        1 "Street Door" under a template of "Relay {relay}" produced
+        "WebRelay-Quad Relay Street Door" on the live system -- correct, and
+        obviously written by a computer.
         """
-        return {"relay": self._relay_options.get(CONF_RELAY_NAME) or str(self._relay)}
+        if name := self._relay_options.get(CONF_RELAY_NAME):
+            return {"relay": name}
+        return {"relay": f"Relay {self._relay}"}
 
     @property
     def _is_closed(self) -> bool | None:
