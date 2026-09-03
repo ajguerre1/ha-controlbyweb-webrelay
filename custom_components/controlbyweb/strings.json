@@ -23,5 +23,47 @@
     "abort": {
       "already_configured": "That WebRelay-Quad is already set up."
     }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "WebRelay-Quad settings",
+        "description": "Name each relay after what it is wired to, and set how long its pulse button holds it closed.\n\nPulse lengths are **not read from the board** — it has no way to report them. If you have set a Pulse Duration on the device's own setup page and want the same behaviour here, enter the same number. They are often different for each relay, so check rather than assume.",
+        "data": {
+          "name_1": "Relay 1 name",
+          "pulse_seconds_1": "Relay 1 pulse length",
+          "name_2": "Relay 2 name",
+          "pulse_seconds_2": "Relay 2 pulse length",
+          "name_3": "Relay 3 name",
+          "pulse_seconds_3": "Relay 3 pulse length",
+          "name_4": "Relay 4 name",
+          "pulse_seconds_4": "Relay 4 pulse length",
+          "confirm_pulses": "Confirm pulses",
+          "scan_interval": "How often to check the relays"
+        },
+        "data_description": {
+          "pulse_seconds_1": "0.1 to 86400 seconds. Too short and nothing happens; too long and the relay stays closed.",
+          "confirm_pulses": "After pressing a pulse button, check that the relay really closed, and report a failure if it did not. Pulses shorter than half a second are too brief to check reliably and are skipped.",
+          "scan_interval": "45 seconds at most. The board closes an idle connection after about 50 seconds, so checking less often does not save it work — it just means the next button press has to reconnect first."
+        }
+      }
+    }
+  },
+  "entity": {
+    "binary_sensor": {
+      "relay_state": {
+        "name": "Relay {relay}"
+      }
+    },
+    "button": {
+      "relay_pulse": {
+        "name": "Relay {relay} pulse"
+      }
+    },
+    "switch": {
+      "relay_latch": {
+        "name": "Relay {relay} hold"
+      }
+    }
   }
 }
