@@ -18,5 +18,16 @@ ruff>=0.7
 # shipped code will never meet.
 modbus-connection[tmodbus]==4.10.0
 
+# Never imported by this integration, and required anyway. Depending on `modbus` means importing
+# `homeassistant.components.modbus`, whose package __init__ pulls in the YAML hub, which is still
+# built on pymodbus — so collection of tests/ha/ fails at import without it. Home Assistant
+# installs it at runtime from the modbus manifest; pytest-homeassistant-custom-component does not
+# install integration requirements, so it has to be named here.
+#
+# Pinned to match core's own pin rather than left open: this is here purely to satisfy an import,
+# and a major-version bump arriving on its own would break that import for a reason having nothing
+# to do with this integration.
+pymodbus==3.13.1
+
 pytest-homeassistant-custom-component>=0.13
 pytest-cov

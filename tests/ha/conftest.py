@@ -28,14 +28,19 @@ from custom_components.controlbyweb.const import (
     DOMAIN,
 )
 
-pytest_plugins = ["pytest_homeassistant_custom_component"]
+# No `pytest_plugins` declaration here. pytest refuses it in a non-root conftest, and it is
+# unnecessary anyway: pytest-homeassistant-custom-component registers itself through entry points
+# when installed, which is exactly the condition tests/conftest.py already tests to decide whether
+# to collect this directory at all.
 
+#: A documentation-range address (RFC 5737). Not a real one -- a test that quietly reached a real
+#: relay board would be a very bad way to find out the mock was not wired in.
 ENTRY_DATA = {CONF_HOST: "192.0.2.10", CONF_PORT: 502, CONF_UNIT_ID: 255}
 
 
 @pytest.fixture(autouse=True)
-def auto_enable_custom_integrations(enable_custom_integrations):
-    """Let Home Assistant load this integration from custom_components/."""
+def auto_enable_custom_integrations(enable_custom_integrations: None) -> None:
+    """Home Assistant will not load a custom component in tests without this."""
     return
 
 
