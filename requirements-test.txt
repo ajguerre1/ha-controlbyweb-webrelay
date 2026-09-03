@@ -29,5 +29,14 @@ modbus-connection[tmodbus]==4.10.0
 # to do with this integration.
 pymodbus==3.13.1
 
-pytest-homeassistant-custom-component>=0.13
+# A FLOOR, not an exact pin, and the number matters. 0.13.363 is the first release pinning the
+# stable homeassistant 2026.9.0 (0.13.358-362 pin its betas), which is where
+# `modbus.async_get_unit` -- the whole foundation this integration sits on -- first exists.
+# Without a floor, pip resolves this to whatever HA it can install on the interpreter it finds,
+# which is how CI ended up testing against 2026.2.3.
+#
+# A floor rather than `==` so the weekly scheduled run still picks up new Home Assistant
+# releases. Catching breakage from those is the reason that run exists; an exact pin would
+# quietly turn it into a no-op.
+pytest-homeassistant-custom-component>=0.13.363
 pytest-cov

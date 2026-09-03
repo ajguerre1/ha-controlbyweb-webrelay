@@ -99,7 +99,7 @@ class ControlByWebConfigFlow(ConfigFlow, domain=DOMAIN):
                 # different setting.
                 _LOGGER.debug("Device at %s is not a WebRelay-Quad: %s", params.host, err)
                 errors["base"] = "not_a_webrelay_quad"
-            except (ModbusError, HomeAssistantError):
+            except ModbusError, HomeAssistantError:
                 # Also the symptom of the device's control password being on,
                 # which disables Modbus outright. The message says so, because
                 # nothing else in Home Assistant will ever mention it.

@@ -1,10 +1,14 @@
 [tool.ruff]
 line-length = 100
-# Pinned to py313, NOT inferred. Home Assistant 2026.9 runs on Python 3.13, but the dev box here
-# has 3.14. If ruff inferred the target from the local interpreter it would start rewriting to
-# 3.14-only syntax, `ruff format --check` would pass in CI, and Home Assistant would then fail to
-# load the integration at runtime.
-target-version = "py313"
+# Pinned, NOT inferred, and pinned to what Home Assistant actually requires rather than to what a
+# sibling project happened to use: `homeassistant==2026.9.0` declares `requires_python >=3.14.2`.
+# An earlier version of this file said 3.13, copied from a repo targeting 2026.8. That was wrong,
+# and it was not a harmless kind of wrong -- CI installed Python 3.13, pip could not install
+# 2026.9.0 there, and rather than failing it silently backtracked through
+# pytest-homeassistant-custom-component releases to one pinning homeassistant 2026.2.3. The tests
+# then failed with `cannot import name 'async_get_unit'`, which reads as a bug in this integration
+# rather than as an interpreter three versions too old.
+target-version = "py314"
 
 [tool.ruff.lint]
 select = ["E", "F", "W", "I", "UP", "B", "SIM", "RUF"]
