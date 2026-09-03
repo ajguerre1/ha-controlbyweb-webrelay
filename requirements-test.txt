@@ -1,0 +1,22 @@
+# Test dependencies.
+#
+# pytest-homeassistant-custom-component pulls in Home Assistant itself, which cannot be imported
+# on Windows (homeassistant.runner imports POSIX-only fcntl). The HA-dependent tests under
+# tests/ha/ therefore run in CI (Ubuntu) only. Everything under
+# custom_components/controlbyweb/webrelay/ has no Home Assistant imports and its tests run
+# anywhere — that separation is the reason the protocol work is testable during development.
+
+pytest>=8.0
+pytest-asyncio>=0.24
+ruff>=0.7
+
+# The register map and the word-swapped float encoder are the integration's own code, but the
+# Modbus transport is NOT: it comes from `modbus_connection`, which arrives with Home Assistant's
+# `modbus` integration at runtime (manifest.json stays at requirements: []). It is named here
+# because tests need it directly — its `mock` module and pytest plugin provide the wire-level test
+# double, and pinning it to core's version is what keeps a test from passing against an API the
+# shipped code will never meet.
+modbus-connection[tmodbus]==4.10.0
+
+pytest-homeassistant-custom-component>=0.13
+pytest-cov

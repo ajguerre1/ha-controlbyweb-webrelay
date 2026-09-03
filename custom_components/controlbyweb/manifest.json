@@ -1,0 +1,20 @@
+{
+  "domain": "controlbyweb",
+  "name": "ControlByWeb WebRelay-Quad",
+  "codeowners": [
+    "@ajguerre1"
+  ],
+  "config_flow": true,
+  "dependencies": [
+    "modbus"
+  ],
+  "documentation": "https://github.com/ajguerre1/ha-controlbyweb-webrelay",
+  "integration_type": "device",
+  "iot_class": "local_polling",
+  "issue_tracker": "https://github.com/ajguerre1/ha-controlbyweb-webrelay/issues",
+  "loggers": [
+    "custom_components.controlbyweb"
+  ],
+  "requirements": [],
+  "version": "0.1.0"
+}

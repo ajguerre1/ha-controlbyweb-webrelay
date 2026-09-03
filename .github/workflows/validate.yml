@@ -1,0 +1,77 @@
+name: Validate
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+  schedule:
+    # Catches breakage from new Home Assistant releases rather than finding out when a gate stops
+    # opening. This integration sits on `homeassistant.components.modbus.async_get_unit`, which is
+    # newer than the integration itself, so an upstream change there is a live risk.
+    - cron: "0 6 * * 1"
+
+jobs:
+  hassfest:
+    name: hassfest
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: home-assistant/actions/hassfest@master
+
+  hacs:
+    name: HACS
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: hacs/action@main
+        with:
+          category: integration
+
+  lint:
+    name: ruff
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.13"
+      # CI always installs the latest ruff. A stale local copy passes on rules that did not exist
+      # yet, so upgrade before trusting a local run.
+      - run: pip install ruff
+      - run: ruff check .
+      - run: ruff format --check .
+
+  strings:
+    name: strings/translations parity
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      # strings.json and translations/en.json must stay byte-identical. `diff` also fails when
+      # exactly one of them exists, which is the other way this drifts.
+      - name: strings.json and translations/en.json must be identical
+        run: |
+          base=custom_components/controlbyweb
+          if [ ! -e "$base/strings.json" ] && [ ! -e "$base/translations/en.json" ]; then
+            echo "Neither file exists yet - nothing to compare."
+            exit 0
+          fi
+          diff "$base/strings.json" "$base/translations/en.json"
+
+  test:
+    name: pytest
+    runs-on: ubuntu-latest
+    # This exists because a test that waits on an event-loop timer while the clock is frozen does
+    # not fail -- it hangs, and would otherwise occupy a runner until GitHub's six-hour default.
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.13"
+      # Home Assistant cannot be imported on Windows, so the HA-dependent tests under tests/ha/
+      # only run here. The webrelay/ protocol module has no HA imports and runs everywhere.
+      - run: pip install -r requirements-test.txt
+      # Coverage is measured here rather than locally: the HA-dependent tests only run in CI, so a
+      # local figure understates webrelay/ by everything the entities exercise.
+      - run: pytest tests/ -v --cov=custom_components/controlbyweb --cov-report=term-missing

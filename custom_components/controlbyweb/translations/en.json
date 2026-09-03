@@ -1,0 +1,27 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Add a WebRelay-Quad",
+        "description": "Enter the address of the relay board. Modbus must be available on it — see the errors below if it is not.",
+        "data": {
+          "host": "IP address or host name",
+          "port": "Modbus port",
+          "unit_id": "Unit ID"
+        },
+        "data_description": {
+          "port": "502 unless it was changed on the device's Network setup page.",
+          "unit_id": "255, as the WebRelay-Quad's manual specifies. Leave this alone unless you have a reason not to."
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Could not reach a Modbus device at that address. Check the address and port — and check that the device's control password is turned off. The WebRelay-Quad disables Modbus entirely whenever a control password is set, because Modbus has no way to carry one. You can have the control password or you can have this integration, not both.",
+      "not_a_webrelay_quad": "Something answered at that address, but it is not a WebRelay-Quad. This integration writes to specific registers, so it will not continue against a device it does not recognise.",
+      "unknown": "Something unexpected went wrong. Check the Home Assistant log for details."
+    },
+    "abort": {
+      "already_configured": "That WebRelay-Quad is already set up."
+    }
+  }
+}

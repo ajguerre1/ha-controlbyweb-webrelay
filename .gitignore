@@ -1,0 +1,38 @@
+# Editor and assistant scratch — not part of the project history
+*-local/
+nimbalyst-local/
+
+# Local-only working copies that legitimately contain real addresses and relay labels. A relay on
+# this hardware is usually named after what it opens, so a captured transcript is site data even
+# though it carries no credentials.
+local/
+captures/
+*.raw.log
+.env
+secrets.yaml
+**/secrets.local.json
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+build/
+dist/
+.venv/
+venv/
+
+# Tooling caches
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.coverage
+htmlcov/
+
+# OS / editor
+Thumbs.db
+desktop.ini
+.DS_Store
+
+# Local development tooling. Not part of the integration.
+.claude/
