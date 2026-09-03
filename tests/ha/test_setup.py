@@ -5,10 +5,17 @@ from __future__ import annotations
 from datetime import timedelta
 
 import pytest
-from homeassistant.const import CONF_SCAN_INTERVAL, STATE_OFF, STATE_ON
+from homeassistant.const import (
+    CONF_SCAN_INTERVAL,
+    STATE_OFF,
+    STATE_ON,
+    STATE_UNAVAILABLE,
+)
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers import entity_registry as er
+from homeassistant.util import dt as dt_util
 from modbus_connection.mock import MockModbusUnit
+from pytest_homeassistant_custom_component.common import async_fire_time_changed
 
 from custom_components.controlbyweb.const import DOMAIN
 from custom_components.controlbyweb.webrelay import MAX_SCAN_INTERVAL
@@ -128,15 +135,72 @@ async def test_the_scan_interval_is_clamped_below_the_connection_timeout(
     assert entry.runtime_data.update_interval == timedelta(seconds=expected)
 
 
-async def test_unload_leaves_nothing_behind(
+async def test_unload_stops_anything_claiming_to_know_the_relay_states(
     hass: HomeAssistant, quad_unit: MockModbusUnit, setup_entry
 ):
-    """Unloading removes every entity state, so a reload is a clean start."""
+    """After unload, no entity still reports a relay as on or off.
+
+    Note what this does NOT assert. An earlier version required the states to be
+    gone entirely and failed: Home Assistant leaves a restored `unavailable`
+    placeholder for registry entries whose platform is no longer loaded. That is
+    framework behaviour, not this integration's, and the property actually worth
+    holding is the one below -- nothing keeps answering with a stale relay state.
+    """
     entry = await setup_entry()
 
     assert await hass.config_entries.async_unload(entry.entry_id)
     await hass.async_block_till_done()
 
     registry = er.async_get(hass)
-    entities = er.async_entries_for_config_entry(registry, entry.entry_id)
-    assert all(hass.states.get(e.entity_id) is None for e in entities)
+    live = [
+        state
+        for e in er.async_entries_for_config_entry(registry, entry.entry_id)
+        if (state := hass.states.get(e.entity_id)) is not None
+    ]
+    assert all(s.state == STATE_UNAVAILABLE for s in live)
+
+
+# -- the post-pulse refresh, armed and after unload ------------------------------
+#
+# A confirmed pulse schedules one extra read for just after the relay should have
+# released, so the sensor does not sit showing 'on' until the next scheduled poll.
+# That callback outlives the press, so it has to be cancelled on unload -- and a
+# reload, which every options change performs, is an unload. Both halves are
+# asserted: a cancellation that also stopped the normal case would be silent.
+
+
+async def test_the_post_pulse_refresh_fires_while_loaded(
+    hass: HomeAssistant, quad_unit: MockModbusUnit, setup_entry
+):
+    """The armed half: the extra read happens."""
+    from .test_pulse_confirmation import close_relay_on_pulse, press
+
+    entry = await setup_entry()
+    close_relay_on_pulse(quad_unit)
+    await press(hass, entry)
+
+    before = len(quad_unit.read_events)
+    async_fire_time_changed(hass, dt_util.utcnow() + timedelta(seconds=5), fire_all=True)
+    await hass.async_block_till_done()
+
+    assert len(quad_unit.read_events) > before
+
+
+async def test_the_post_pulse_refresh_does_not_fire_after_unload(
+    hass: HomeAssistant, quad_unit: MockModbusUnit, setup_entry
+):
+    """The guard: the same pending callback must not run against a torn-down entry."""
+    from .test_pulse_confirmation import close_relay_on_pulse, press
+
+    entry = await setup_entry()
+    close_relay_on_pulse(quad_unit)
+    await press(hass, entry)
+
+    assert await hass.config_entries.async_unload(entry.entry_id)
+    await hass.async_block_till_done()
+
+    before = len(quad_unit.read_events)
+    async_fire_time_changed(hass, dt_util.utcnow() + timedelta(seconds=5), fire_all=True)
+    await hass.async_block_till_done()
+
+    assert len(quad_unit.read_events) == before
