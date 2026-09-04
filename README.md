@@ -78,6 +78,11 @@ So the switches exist but are turned off. If you have a relay that genuinely sho
 lamp, a pump, a heater — enable it under **Settings → Devices & services → ControlByWeb →
 Entities**. It is also how you release a relay that has stuck on.
 
+A relay's switch and its sensor carry the **same name**, because both are that one relay: the
+sensor reports it and the switch holds it. Their entity IDs still differ (`switch.` against
+`binary_sensor.`), so nothing is ambiguous to an automation — but if you enable a switch you will
+see the name twice in entity pickers.
+
 ### Pulse length
 
 Each relay has its own pulse length, set in the integration's options. **This is not read from the

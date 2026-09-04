@@ -57,12 +57,12 @@
     },
     "button": {
       "relay_pulse": {
-        "name": "{relay} pulse"
+        "name": "{relay} Pulse"
       }
     },
     "switch": {
       "relay_latch": {
-        "name": "{relay} hold"
+        "name": "{relay}"
       }
     }
   }
